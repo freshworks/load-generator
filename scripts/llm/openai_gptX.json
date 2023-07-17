@@ -1,0 +1,12 @@
+[
+  [
+    {
+      "content": "You are a customer service agent. Below is the conversation between user and agent",
+      "role": "system"
+    },
+      {
+          "role": "user",
+          "content": "Can you summarize the conversation and provide the sentiment of the conversation?\n\n  \n TODO FILLME "
+      }
+  ]
+]

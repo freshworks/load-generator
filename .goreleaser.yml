@@ -1,0 +1,62 @@
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    binary: lg
+    ldflags:
+      - -X {{.ModulePath}}/cmd.Version={{.Version}}
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+archives:
+  - wrap_in_directory: true
+    format: zip
+    files:
+      - scripts/*
+
+dockers:
+  - goos: linux
+    goarch: amd64
+    # use: buildx
+    image_templates:
+      - "ghcr.io/freshworks/load-generator/load-generator:{{ .Version }}-amd64"
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+    extra_files:
+      - scripts
+  # - use: buildx
+  #   goos: linux
+  #   goarch: arm64
+  #   image_templates:
+  #     - "ghcr.io/freshworks/load-generator/load-generator:{{ .Version }}-arm64"
+  #   build_flag_templates:
+  #     - "--platform=linux/arm64"
+  #     - "--label=org.opencontainers.image.created={{.Date}}"
+  #     - "--label=org.opencontainers.image.title={{.ProjectName}}"
+  #     - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+  #     - "--label=org.opencontainers.image.version={{.Version}}"
+  #   extra_files:
+  #     - scripts
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  use: github
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
