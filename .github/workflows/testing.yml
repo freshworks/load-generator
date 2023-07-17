@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, edited]
 
     branches:
-      - master
+      - main
 
 jobs:
   run_test:
