@@ -29,7 +29,7 @@ require (
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/net v0.11.0
 	golang.org/x/time v0.3.0
-	google.golang.org/grpc v1.56.1
+	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	layeh.com/gopher-luar v1.0.11
