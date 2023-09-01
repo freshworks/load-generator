@@ -13,7 +13,7 @@ require (
 	github.com/fullstorydev/grpcurl v1.8.7
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.7.1
-	github.com/gocql/gocql v1.5.2
+	github.com/gocql/gocql v1.6.0
 	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.2
 	github.com/jhump/protoreflect v1.15.2
