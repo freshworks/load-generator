@@ -15,7 +15,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gocql/gocql v1.5.2
 	github.com/google/uuid v1.3.1
-	github.com/jackc/pgx/v5 v5.4.2
+	github.com/jackc/pgx/v5 v5.4.3
 	github.com/jhump/protoreflect v1.15.2
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.10.0
