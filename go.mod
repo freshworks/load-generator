@@ -25,7 +25,7 @@ require (
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/pretty v1.2.1
-	github.com/vadv/gopher-lua-libs v0.4.1
+	github.com/vadv/gopher-lua-libs v0.5.0
 	github.com/yuin/gopher-lua v1.1.0
 	golang.org/x/net v0.14.0
 	golang.org/x/time v0.3.0
