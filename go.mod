@@ -4,7 +4,7 @@ require (
 	github.com/Davmuz/gqt v0.0.0-20161229104334-7589d282c7c3
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2
 	github.com/alicebob/miniredis v2.5.0+incompatible
-	github.com/aws/aws-sdk-go v1.45.1
+	github.com/aws/aws-sdk-go v1.45.19
 	github.com/bdwilliams/go-jsonify v0.0.0-20141020182238-48749139e742
 	github.com/brentp/go-chartjs v0.0.0-20170901194241-a37b166b7875
 	github.com/datastax/gocql-astra v0.0.0-20220825200745-7aa1e2624df1
