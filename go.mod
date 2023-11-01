@@ -10,7 +10,7 @@ require (
 	github.com/datastax/gocql-astra v0.0.0-20220825200745-7aa1e2624df1
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.18.1
-	github.com/fullstorydev/grpcurl v1.8.8
+	github.com/fullstorydev/grpcurl v1.8.9
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/gocql/gocql v1.6.0
