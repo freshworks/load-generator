@@ -16,7 +16,7 @@ require (
 	github.com/gocql/gocql v1.6.0
 	github.com/google/uuid v1.3.1
 	github.com/jackc/pgx/v5 v5.4.3
-	github.com/jhump/protoreflect v1.15.2
+	github.com/jhump/protoreflect v1.15.3
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/percona/go-mysql v0.0.0-20210427141028-73d29c6da78c
