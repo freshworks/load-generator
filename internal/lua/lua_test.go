@@ -1228,7 +1228,7 @@ func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
 	return nil
 }
 
-func (s *Session) Rcpt(to string) error {
+func (s *Session) Rcpt(to string, r *smtp.RcptOptions) error {
 	// log.Println("Rcpt to:", to)
 	return nil
 }
