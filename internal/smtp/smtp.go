@@ -138,7 +138,7 @@ func (g *Generator) SendMail(sender, receiver, subject, body string) error {
 	if err = c.Mail(sender, nil); err != nil {
 		return err
 	}
-	if err = c.Rcpt(receiver); err != nil {
+	if err = c.Rcpt(receiver, &smtp.RcptOptions{}); err != nil {
 		return err
 	}
 
