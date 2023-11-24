@@ -60,3 +60,8 @@ out:
 
 	lg.log.Debugf("Exiting run")
 }
+
+func (lg *LoadGenerator) Finish() error {
+	lg.log.Debugf("Calling finish for generator: %T", lg.generator)
+	return lg.generator.Finish()
+}
