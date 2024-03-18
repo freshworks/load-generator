@@ -52,8 +52,10 @@ func (r *Runner) Run() {
 		lg := loadgen.NewLoadGenerator(i+1, r.requestrate, r.concurrency, r.newGenerator, r.workChan, r.ctx, r.stats)
 
 		go func() {
-			defer runDoneWg.Done()
-
+			defer func() {
+				lg.Finish()
+				runDoneWg.Done()
+			}()
 			err := lg.Init()
 			initDoneWg.Done()
 			if err != nil {
