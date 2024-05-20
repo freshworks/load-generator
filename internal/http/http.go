@@ -28,6 +28,7 @@ import (
 	"github.com/freshworks/load-generator/internal/stats"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/publicsuffix"
+	"moul.io/http2curl"
 )
 
 var tlsKeyLogWriter io.Writer
@@ -60,6 +61,7 @@ type GeneratorOptions struct {
 	DisableCookieJar    bool
 	AwsSign             bool
 	AwsSignInfo         AwsSignInfo
+	PrintCurl           bool
 }
 
 type AwsSignInfo struct {
@@ -303,6 +305,15 @@ func (g *Generator) do(method string, urlStr string, headers map[string]string, 
 	traceInfo.Type = stats.HttpTrace
 	traceInfo.Key = fmt.Sprintf("%s://%s", req.URL.Scheme, req.URL.Host)
 	traceInfo.Subkey = req.URL.Path
+
+	if g.options.PrintCurl {
+		cmd, err := http2curl.GetCurlCommand(req)
+		if err == nil {
+			g.log.Printf("curl command: %s", cmd)
+		} else {
+			g.log.Errorf("error generating curl command: %s", err)
+		}
+	}
 
 	resp, err := g.client.Do(req)
 	if err != nil {

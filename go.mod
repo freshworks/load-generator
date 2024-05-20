@@ -33,6 +33,7 @@ require (
 	google.golang.org/protobuf v1.33.0
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	layeh.com/gopher-luar v1.0.11
+	moul.io/http2curl v1.0.0
 )
 
 require (
@@ -92,6 +93,7 @@ require (
 	github.com/prometheus/common v0.30.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
