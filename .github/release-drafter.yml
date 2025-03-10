@@ -1,0 +1,45 @@
+name-template: "v$RESOLVED_VERSION 🌈"
+tag-template: "v$RESOLVED_VERSION"
+categories:
+  - title: "🚀 Features"
+    labels:
+      - "feature"
+  - title: "✨ Improvements / Enhancements"
+    label:
+      - "enhancement"
+      - "task"
+  - title: "🐛 Bug Fixes"
+    labels:
+      - "fix"
+      - "bug-fix"
+      - "bug"
+  - title: "🚨 Security Fixes"
+    label:
+      - "security-bug"
+      - "security"
+  - title: "🌵 Dependency Updates"
+    label:
+      - "dependencies"
+  - title: "🧰 Maintenance"
+    label:
+      - "chore"
+      - "docs"
+      - "documentation"
+change-template: "- $TITLE @$AUTHOR (#$NUMBER)"
+exclude-labels:
+  - "skip-changelog"
+sort-direction: "ascending"
+version-resolver:
+  major:
+    labels:
+      - "major"
+  minor:
+    labels:
+      - "minor"
+  patch:
+    labels:
+      - "patch"
+  default: patch
+template: |
+  ## Changelog
+  $CHANGES
