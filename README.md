@@ -32,6 +32,8 @@ Requires go
 make
 ```
 
+
+
 ## Usage
 
 It can be invoked directly for simple test cases or create a Lua file to do
@@ -493,3 +495,68 @@ For example, visiting http://localhost:1234/graphs, should show something
 like this:
 
 ![Latency Graph](latency_graph.png)
+
+## Docker Compose for Testing
+
+A Docker Compose configuration is included to easily spin up services for testing the load generator.
+
+### Available Services
+
+The docker-compose.yml file includes the following services:
+
+- **Kafka & Zookeeper**: For testing Kafka producer and consumer functionality
+- **Redis**: For testing Redis commands
+- **PostgreSQL**: For testing PostgreSQL queries
+- **MySQL**: For testing MySQL queries
+- **Cassandra**: For testing CQL queries
+- **MailHog**: A development SMTP server with web interface for testing SMTP functionality
+
+### Usage
+
+#### Starting All Services
+
+To start all services:
+
+```bash
+docker compose up -d
+```
+
+#### Starting a Specific Service
+
+To start a specific service (and its dependencies):
+
+```bash
+docker compose up -d <service-name>
+```
+
+For example, to start only Kafka and its dependency (Zookeeper):
+
+```bash
+docker compose up -d kafka
+```
+
+#### Stopping Services
+
+To stop all services:
+
+```bash
+docker compose down
+```
+
+### Service Connection Details
+
+Refer to each command section above for examples of how to connect to each service.
+
+#### Creating Test Topics in Kafka
+
+To create a test topic in Kafka, you can use the following command:
+
+```bash
+docker exec -it kafka kafka-topics --create --topic test-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+```
+
+To list topics:
+
+```bash
+docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
+```
