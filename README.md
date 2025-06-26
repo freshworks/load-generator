@@ -9,6 +9,7 @@ Following endpoints are supported:
   * PostgreSQL
   * Cassandra
   * SMTP
+  * Kafka
 
 Features:
   * Metris: Latency distribution (percentiles) and response time histograms
@@ -354,6 +355,50 @@ localhost:1025:
 </details>
 
 See see [here](scripts/smtp.lua) how to do this via Lua script.
+
+### Kafka
+Generate Kafka load by producing messages to or consuming messages from a Kafka topic:
+
+```
+# Produce messages to a Kafka topic
+lg kafka --brokers "localhost:9092" --topic "test-topic" --message "Hello World" --requestrate 10 --duration 30s
+
+# Consume messages from a Kafka topic
+lg kafka --brokers "localhost:9092" --topic "test-topic" --group "consumer-group-1" --read --requestrate 10 --duration 30s
+```
+
+<details>
+  <summary>Output:</summary>
+
+  ```
+INFO[0000] Starting ...
+INFO[0005] Warmup done (5s seconds)
+
+Kafka Metrics:
+
+localhost:9092:
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+|       KEY        | AVG  | STDDEV | MIN  | MAX  | P50  | P95  | P99  | P99.99 | TOTAL | AVGRPS | ERRORS |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+| write:test-topic | 1.25 |   0.35 | 0.85 | 2.15 | 1.20 | 1.85 | 2.15 |   2.15 |   300 |  10.00 |      0 |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+
+Response time histogram (ms):
+
+write:test-topic:
+     0.850 [        15] |■■■■■■■■■■■
+     0.980 [        42] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.110 [        78] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.240 [        69] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.370 [        41] |■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.500 [        25] |■■■■■■■■■■■■■■■■
+     1.630 [        15] |■■■■■■■■■■■
+     1.760 [         8] |■■■■■
+     1.890 [         4] |■■
+     2.020 [         2] |■
+     2.150 [         1] |■
+  ```
+</details>
 
 ### Lua
 
