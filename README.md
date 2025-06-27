@@ -12,7 +12,7 @@ Following endpoints are supported:
   * Kafka
 
 Features:
-  * Metris: Latency distribution (percentiles) and response time histograms
+  * Metrics: Latency distribution (percentiles) and response time histograms
     are reported (using HdrHistogram)
   * Programmable via Lua: you can mix/match any of these endpoints and
     metrics will be collected and reported for each of them
