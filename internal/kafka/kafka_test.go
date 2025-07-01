@@ -83,8 +83,3 @@ func TestKafkaConsumer(t *testing.T) {
 		// No need to call Finish() as we didn't actually connect
 	})
 }
-
-func getStatResultsFor(s *stats.Stats) []stats.Result {
-	r := s.Export()
-	return r.Results
-}
