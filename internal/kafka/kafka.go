@@ -43,8 +43,8 @@ func NewGenerator(id int, options GeneratorOptions, ctx context.Context, request
 
 // Helper function to check for context deadline errors
 func isContextDeadlineError(err error) bool {
-	return err != nil && (err.Error() == "context deadline exceeded" || 
-		err.Error() == "fetching message: context deadline exceeded")
+	return err != nil && (errors.Is(err, context.DeadlineExceeded) || 
+		errors.Is(err, kafka.ErrDeadlineExceeded))
 }
 
 func (k *Generator) Init() error {
