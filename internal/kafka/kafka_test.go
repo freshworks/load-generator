@@ -83,3 +83,56 @@ func TestKafkaConsumer(t *testing.T) {
 		// No need to call Finish() as we didn't actually connect
 	})
 }
+
+func TestKafkaWithSCRAMAuth(t *testing.T) {
+	require := require.New(t)
+	assert := assert.New(t)
+
+	// Test SCRAM-SHA-512 with TLS
+	t.Run("SCRAM-SHA-512 with TLS", func(t *testing.T) {
+		options := NewOptions()
+		options.Brokers = []string{"localhost:9092"}
+		options.Topic = "test-topic"
+		options.Username = "test-user"
+		options.Password = "test-password"
+		options.SASLMechanism = "SCRAM-SHA-512"
+		options.UseTLS = true
+
+		sts := stats.New("id", 1, 1, 0, false)
+		sts.Start()
+		defer sts.Stop()
+
+		g := NewGenerator(0, *options, context.Background(), 1, sts)
+		require.NotNil(g)
+
+		// Verify SCRAM auth options are set correctly
+		assert.Equal("test-user", g.o.Username)
+		assert.Equal("test-password", g.o.Password)
+		assert.Equal("SCRAM-SHA-512", g.o.SASLMechanism)
+		assert.True(g.o.UseTLS)
+	})
+
+	// Test SCRAM-SHA-256 without TLS
+	t.Run("SCRAM-SHA-256 without TLS", func(t *testing.T) {
+		options := NewOptions()
+		options.Brokers = []string{"localhost:9092"}
+		options.Topic = "test-topic"
+		options.Username = "test-user"
+		options.Password = "test-password"
+		options.SASLMechanism = "SCRAM-SHA-256"
+		options.UseTLS = false
+
+		sts := stats.New("id", 1, 1, 0, false)
+		sts.Start()
+		defer sts.Stop()
+
+		g := NewGenerator(0, *options, context.Background(), 1, sts)
+		require.NotNil(g)
+
+		// Verify SCRAM auth options are set correctly
+		assert.Equal("test-user", g.o.Username)
+		assert.Equal("test-password", g.o.Password)
+		assert.Equal("SCRAM-SHA-256", g.o.SASLMechanism)
+		assert.False(g.o.UseTLS)
+	})
+}

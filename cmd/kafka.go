@@ -33,6 +33,14 @@ lg kafka --brokers "localhost:9092" --topic "test-topic" --group "consumer-group
 			o.MessageKey = kafkaKey
 			o.GroupID = kafkaGroup
 			o.ReadMessages = kafkaRead
+			
+			// Set SCRAM authentication options if username is provided
+			if kafkaUsername != "" {
+				o.Username = kafkaUsername
+				o.Password = kafkaPassword
+				o.SASLMechanism = kafkaSASLMechanism
+				o.UseTLS = kafkaUseTLS
+			}
 
 			return kafka.NewGenerator(id, *o, ctx, requestrate, s)
 		}
@@ -51,6 +59,11 @@ var (
 	kafkaKey     string
 	kafkaGroup   string
 	kafkaRead    bool
+	// SCRAM authentication options
+	kafkaUsername     string
+	kafkaPassword     string
+	kafkaSASLMechanism string
+	kafkaUseTLS       bool
 )
 
 func init() {
@@ -61,4 +74,10 @@ func init() {
 	kafkaCmd.Flags().StringVar(&kafkaKey, "key", "", "Message key (optional)")
 	kafkaCmd.Flags().StringVar(&kafkaGroup, "group", "lg-consumer", "Consumer group ID (only used with --read)")
 	kafkaCmd.Flags().BoolVar(&kafkaRead, "read", false, "Read messages instead of producing them")
+	
+	// SCRAM authentication options
+	kafkaCmd.Flags().StringVar(&kafkaUsername, "username", "", "SASL username for authentication")
+	kafkaCmd.Flags().StringVar(&kafkaPassword, "password", "", "SASL password for authentication")
+	kafkaCmd.Flags().StringVar(&kafkaSASLMechanism, "sasl-mechanism", "SCRAM-SHA-512", "SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512)")
+	kafkaCmd.Flags().BoolVar(&kafkaUseTLS, "tls", false, "Enable TLS for Kafka connections")
 }

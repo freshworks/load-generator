@@ -369,6 +369,78 @@ lg kafka --brokers "localhost:9092" --topic "test-topic" --message "Hello World"
 lg kafka --brokers "localhost:9092" --topic "test-topic" --group "consumer-group-1" --read --requestrate 10 --duration 30s
 ```
 
+#### SCRAM Authentication Support
+
+The load generator supports SASL SCRAM authentication for Kafka connections. Both SCRAM-SHA-256 and SCRAM-SHA-512 mechanisms are supported, with or without TLS.
+
+```bash
+# Using SCRAM authentication with TLS
+lg kafka --brokers "kafka-broker:9092" --topic "test-topic" --message "Hello World" \
+  --username "user" --password "password" --sasl-mechanism "SCRAM-SHA-512" --tls \
+  --requestrate 10 --duration 30s
+
+# Using SCRAM authentication without TLS
+lg kafka --brokers "kafka-broker:9092" --topic "test-topic" --message "Hello World" \
+  --username "user" --password "password" --sasl-mechanism "SCRAM-SHA-256" \
+  --requestrate 10 --duration 30s
+```
+
+#### Authentication Options
+
+| Option | Description |
+|--------|-------------|
+| `--username` | SASL username for authentication |
+| `--password` | SASL password for authentication |
+| `--sasl-mechanism` | SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512, default: SCRAM-SHA-512) |
+| `--tls` | Enable TLS for Kafka connections (optional with SCRAM authentication) |
+
+#### Testing with Docker Compose
+
+The repository includes a Docker Compose configuration with both a regular Kafka instance and a Kafka instance with SCRAM authentication:
+
+```bash
+# Start Kafka with SCRAM authentication
+docker compose up -d zookeeper kafka-scram
+```
+
+##### Creating a Test Topic
+
+To create a test topic in the SCRAM-enabled Kafka service:
+
+```bash
+# Create a test topic with SCRAM authentication
+docker compose exec kafka-scram bash -c "echo 'security.protocol=SASL_PLAINTEXT
+sasl.mechanism=SCRAM-SHA-512
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"admin-secret\";' > /tmp/client.properties && \
+kafka-topics.sh --create --topic scram-test-topic --bootstrap-server localhost:9093 --command-config /tmp/client.properties --partitions 1 --replication-factor 1"
+```
+
+##### Testing with the Load Generator
+
+```bash
+# Test with SCRAM-SHA-512 authentication
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Hello World" \
+  --username "user" --password "user-secret" --sasl-mechanism "SCRAM-SHA-512" \
+  --requestrate 10 --duration 30s
+
+# Test with SCRAM-SHA-256 authentication
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Hello World" \
+  --username "user" --password "user-secret" --sasl-mechanism "SCRAM-SHA-256" \
+  --requestrate 10 --duration 30s
+```
+
+##### Predefined Users
+
+The Kafka SCRAM service comes with two predefined users:
+
+- **Client User**: Username: `user`, Password: `user-secret`
+  - Use this for general client operations with the load generator
+
+- **Admin User**: Username: `admin`, Password: `admin-secret`
+  - Use this for administrative operations like creating topics
+
+The Kafka SCRAM service is configured to support both SCRAM-SHA-256 and SCRAM-SHA-512 authentication mechanisms.
+
 <details>
   <summary>Output:</summary>
 

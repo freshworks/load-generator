@@ -2,11 +2,14 @@ package kafka
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"time"
 
 	"github.com/freshworks/load-generator/internal/stats"
 	"github.com/segmentio/kafka-go"
+	"github.com/segmentio/kafka-go/sasl"
+	"github.com/segmentio/kafka-go/sasl/scram"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,12 +30,19 @@ type GeneratorOptions struct {
 	MessageKey   string
 	GroupID      string
 	ReadMessages bool
+	// SCRAM authentication options
+	Username     string
+	Password     string
+	SASLMechanism string
+	UseTLS       bool
 }
 
 func NewOptions() *GeneratorOptions {
 	return &GeneratorOptions{
-		Brokers: []string{"localhost:9092"},
-		Topic:   "test-topic",
+		Brokers:      []string{"localhost:9092"},
+		Topic:        "test-topic",
+		SASLMechanism: "", // Empty means no SASL
+		UseTLS:       false,
 	}
 }
 
@@ -50,7 +60,7 @@ func isContextDeadlineError(err error) bool {
 func (k *Generator) Init() error {
 	if k.o.ReadMessages {
 		// Initialize a Kafka reader with optimized settings for load testing
-		k.reader = kafka.NewReader(kafka.ReaderConfig{
+		readerConfig := kafka.ReaderConfig{
 			Brokers:         k.o.Brokers,
 			Topic:           k.o.Topic,
 			GroupID:         k.o.GroupID,
@@ -60,14 +70,50 @@ func (k *Generator) Init() error {
 			ReadLagInterval: -1,     // Disable lag reporting for better performance
 			StartOffset:     kafka.LastOffset,
 			CommitInterval:   0, // Disable auto-commits, we'll handle manually
-		})
+		}
+		
+		// Configure SASL if credentials are provided
+		if k.o.Username != "" && k.o.Password != "" && k.o.SASLMechanism != "" {
+			var mechanism sasl.Mechanism
+			var err error
+			
+			switch k.o.SASLMechanism {
+			case "SCRAM-SHA-256":
+				mechanism, err = scram.Mechanism(scram.SHA256, k.o.Username, k.o.Password)
+			case "SCRAM-SHA-512":
+				mechanism, err = scram.Mechanism(scram.SHA512, k.o.Username, k.o.Password)
+			default:
+				k.log.Warnf("Unsupported SASL mechanism: %s, defaulting to SCRAM-SHA-512", k.o.SASLMechanism)
+				mechanism, err = scram.Mechanism(scram.SHA512, k.o.Username, k.o.Password)
+			}
+			
+			if err != nil {
+				k.log.Errorf("Failed to create SASL mechanism: %v", err)
+				return err
+			}
+			
+			var tlsConfig *tls.Config
+			if k.o.UseTLS {
+				tlsConfig = &tls.Config{}
+			}
+			
+			readerConfig.Dialer = &kafka.Dialer{
+				Timeout:       10 * time.Second,
+				DualStack:     true,
+				SASLMechanism: mechanism,
+				TLS:           tlsConfig,
+			}
+			k.log.Infof("Using SASL authentication with mechanism: %s", k.o.SASLMechanism)
+		}
+		
+		k.reader = kafka.NewReader(readerConfig)
 		k.log.Infof("Kafka reader initialized for topic: %s, group: %s", k.o.Topic, k.o.GroupID)
 		
 		// Log a message about consumer behavior
 		k.log.Infof("Consumer mode: will attempt to read messages from topic '%s'. If no messages are available, this is normal.", k.o.Topic)
 	} else {
 		// Initialize a Kafka writer
-		k.writer = &kafka.Writer{
+		writerConfig := &kafka.Writer{
 			Addr:         kafka.TCP(k.o.Brokers...),
 			Topic:        k.o.Topic,
 			Balancer:     &kafka.LeastBytes{},
@@ -76,6 +122,40 @@ func (k *Generator) Init() error {
 			WriteTimeout: 5 * time.Second,       // Write timeout
 			RequiredAcks: kafka.RequireNone,     // Don't wait for acknowledgments for better performance
 		}
+		
+		// Configure SASL if credentials are provided
+		if k.o.Username != "" && k.o.Password != "" && k.o.SASLMechanism != "" {
+			var mechanism sasl.Mechanism
+			var err error
+			
+			switch k.o.SASLMechanism {
+			case "SCRAM-SHA-256":
+				mechanism, err = scram.Mechanism(scram.SHA256, k.o.Username, k.o.Password)
+			case "SCRAM-SHA-512":
+				mechanism, err = scram.Mechanism(scram.SHA512, k.o.Username, k.o.Password)
+			default:
+				k.log.Warnf("Unsupported SASL mechanism: %s, defaulting to SCRAM-SHA-512", k.o.SASLMechanism)
+				mechanism, err = scram.Mechanism(scram.SHA512, k.o.Username, k.o.Password)
+			}
+			
+			if err != nil {
+				k.log.Errorf("Failed to create SASL mechanism: %v", err)
+				return err
+			}
+			
+			var tlsConfig *tls.Config
+			if k.o.UseTLS {
+				tlsConfig = &tls.Config{}
+			}
+			
+			writerConfig.Transport = &kafka.Transport{
+				TLS:  tlsConfig,
+				SASL: mechanism,
+			}
+			k.log.Infof("Using SASL authentication with mechanism: %s", k.o.SASLMechanism)
+		}
+		
+		k.writer = writerConfig
 		k.log.Debugf("Kafka writer initialized for topic: %s", k.o.Topic)
 	}
 

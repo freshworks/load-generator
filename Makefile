@@ -9,6 +9,10 @@ $(BINARY): Makefile
 test:
 	go test -count=1 -race ./...
 
+.PHONY: lint
+lint:
+	golint ./...
+
 .PHONY: clean
 clean:
 	rm -f $(BINARY) $(TARGETS)
