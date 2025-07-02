@@ -23,7 +23,7 @@ require (
 	github.com/qustavo/sqlhooks/v2 v2.1.0
 	github.com/segmentio/kafka-go v0.4.48
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.9.1
 	github.com/stretchr/testify v1.9.0
 	github.com/tidwall/pretty v1.2.1
 	github.com/vadv/gopher-lua-libs v0.5.0
@@ -100,7 +100,7 @@ require (
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/rivo/uniseg v0.3.4 // indirect
 	github.com/smartystreets/goconvey v1.8.1 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
