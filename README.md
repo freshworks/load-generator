@@ -394,6 +394,16 @@ lg kafka --brokers "kafka-broker:9092" --topic "test-topic" --message "Hello Wor
 | `--sasl-mechanism` | SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512, default: SCRAM-SHA-512) |
 | `--tls` | Enable TLS for Kafka connections (optional with SCRAM authentication) |
 
+#### Topic Creation Options
+
+The load generator can automatically create topics if they don't exist. This feature is enabled by default.
+
+| Option | Description |
+|--------|-------------|
+| `--auto-create-topic` | Automatically create topic if it doesn't exist (default: true) |
+| `--partitions` | Number of partitions for topic creation (default: 1) |
+| `--replication-factor` | Replication factor for topic creation (default: 1) |
+
 #### Testing with Docker Compose
 
 The repository includes a Docker Compose configuration with both a regular Kafka instance and a Kafka instance with SCRAM authentication:
@@ -403,16 +413,15 @@ The repository includes a Docker Compose configuration with both a regular Kafka
 docker compose up -d zookeeper kafka-scram
 ```
 
-##### Creating a Test Topic
+##### Automatic Topic Creation
 
-To create a test topic in the SCRAM-enabled Kafka service:
+When running the load generator, topics will be automatically created if they don't exist:
 
 ```bash
-# Create a test topic with SCRAM authentication
-docker compose exec kafka-scram bash -c "echo 'security.protocol=SASL_PLAINTEXT
-sasl.mechanism=SCRAM-SHA-512
-sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required username=\"admin\" password=\"admin-secret\";' > /tmp/client.properties && \
-kafka-topics.sh --create --topic scram-test-topic --bootstrap-server localhost:9093 --command-config /tmp/client.properties --partitions 1 --replication-factor 1"
+# Run load generator with SCRAM authentication - topic will be created automatically if it doesn't exist
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Test message" \
+  --username "admin" --password "admin-secret" --sasl-mechanism "SCRAM-SHA-512" \
+  --requestrate 10 --duration 30s
 ```
 
 ##### Testing with the Load Generator
