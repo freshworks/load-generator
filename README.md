@@ -9,9 +9,10 @@ Following endpoints are supported:
   * PostgreSQL
   * Cassandra
   * SMTP
+  * Kafka
 
 Features:
-  * Metris: Latency distribution (percentiles) and response time histograms
+  * Metrics: Latency distribution (percentiles) and response time histograms
     are reported (using HdrHistogram)
   * Programmable via Lua: you can mix/match any of these endpoints and
     metrics will be collected and reported for each of them
@@ -30,6 +31,8 @@ Requires go
 ```
 make
 ```
+
+
 
 ## Usage
 
@@ -355,6 +358,131 @@ localhost:1025:
 
 See see [here](scripts/smtp.lua) how to do this via Lua script.
 
+### Kafka
+Generate Kafka load by producing messages to or consuming messages from a Kafka topic:
+
+```
+# Produce messages to a Kafka topic
+lg kafka --brokers "localhost:9092" --topic "test-topic" --message "Hello World" --requestrate 10 --duration 30s
+
+# Consume messages from a Kafka topic
+lg kafka --brokers "localhost:9092" --topic "test-topic" --group "consumer-group-1" --read --requestrate 10 --duration 30s
+```
+
+#### SCRAM Authentication Support
+
+The load generator supports SASL SCRAM authentication for Kafka connections. Both SCRAM-SHA-256 and SCRAM-SHA-512 mechanisms are supported, with or without TLS.
+
+```bash
+# Using SCRAM authentication with TLS
+lg kafka --brokers "kafka-broker:9092" --topic "test-topic" --message "Hello World" \
+  --username "user" --password "password" --sasl-mechanism "SCRAM-SHA-512" --tls \
+  --requestrate 10 --duration 30s
+
+# Using SCRAM authentication without TLS
+lg kafka --brokers "kafka-broker:9092" --topic "test-topic" --message "Hello World" \
+  --username "user" --password "password" --sasl-mechanism "SCRAM-SHA-256" \
+  --requestrate 10 --duration 30s
+```
+
+#### Authentication Options
+
+| Option | Description |
+|--------|-------------|
+| `--username` | SASL username for authentication |
+| `--password` | SASL password for authentication |
+| `--sasl-mechanism` | SASL mechanism (SCRAM-SHA-256 or SCRAM-SHA-512, default: SCRAM-SHA-512) |
+| `--tls` | Enable TLS for Kafka connections (optional with SCRAM authentication) |
+
+#### Topic Creation Options
+
+The load generator can automatically create topics if they don't exist. This feature is enabled by default.
+
+| Option | Description |
+|--------|-------------|
+| `--auto-create-topic` | Automatically create topic if it doesn't exist (default: true) |
+| `--partitions` | Number of partitions for topic creation (default: 1) |
+| `--replication-factor` | Replication factor for topic creation (default: 1) |
+
+#### Testing with Docker Compose
+
+The repository includes a Docker Compose configuration with both a regular Kafka instance and a Kafka instance with SCRAM authentication:
+
+```bash
+# Start Kafka with SCRAM authentication
+docker compose up -d zookeeper kafka-scram
+```
+
+##### Automatic Topic Creation
+
+When running the load generator, topics will be automatically created if they don't exist:
+
+```bash
+# Run load generator with SCRAM authentication - topic will be created automatically if it doesn't exist
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Test message" \
+  --username "admin" --password "admin-secret" --sasl-mechanism "SCRAM-SHA-512" \
+  --requestrate 10 --duration 30s
+```
+
+##### Testing with the Load Generator
+
+```bash
+# Test with SCRAM-SHA-512 authentication
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Hello World" \
+  --username "user" --password "user-secret" --sasl-mechanism "SCRAM-SHA-512" \
+  --requestrate 10 --duration 30s
+
+# Test with SCRAM-SHA-256 authentication
+lg kafka --brokers "localhost:9093" --topic "scram-test-topic" --message "Hello World" \
+  --username "user" --password "user-secret" --sasl-mechanism "SCRAM-SHA-256" \
+  --requestrate 10 --duration 30s
+```
+
+##### Predefined Users
+
+The Kafka SCRAM service comes with two predefined users:
+
+- **Client User**: Username: `user`, Password: `user-secret`
+  - Use this for general client operations with the load generator
+
+- **Admin User**: Username: `admin`, Password: `admin-secret`
+  - Use this for administrative operations like creating topics
+
+The Kafka SCRAM service is configured to support both SCRAM-SHA-256 and SCRAM-SHA-512 authentication mechanisms.
+
+<details>
+  <summary>Output:</summary>
+
+  ```
+INFO[0000] Starting ...
+INFO[0005] Warmup done (5s seconds)
+
+Kafka Metrics:
+
+localhost:9092:
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+|       KEY        | AVG  | STDDEV | MIN  | MAX  | P50  | P95  | P99  | P99.99 | TOTAL | AVGRPS | ERRORS |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+| write:test-topic | 1.25 |   0.35 | 0.85 | 2.15 | 1.20 | 1.85 | 2.15 |   2.15 |   300 |  10.00 |      0 |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+
+Response time histogram (ms):
+
+write:test-topic:
+     0.850 [        15] |■■■■■■■■■■■
+     0.980 [        42] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.110 [        78] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.240 [        69] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.370 [        41] |■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     1.500 [        25] |■■■■■■■■■■■■■■■■
+     1.630 [        15] |■■■■■■■■■■■
+     1.760 [         8] |■■■■■
+     1.890 [         4] |■■
+     2.020 [         2] |■
+     2.150 [         1] |■
+  ```
+</details>
+
 ### Lua
 
 > **_NOTE:_** Cookies are retained automatically in http client object (by
@@ -448,3 +576,68 @@ For example, visiting http://localhost:1234/graphs, should show something
 like this:
 
 ![Latency Graph](latency_graph.png)
+
+## Docker Compose for Testing
+
+A Docker Compose configuration is included to easily spin up services for testing the load generator.
+
+### Available Services
+
+The docker-compose.yml file includes the following services:
+
+- **Kafka & Zookeeper**: For testing Kafka producer and consumer functionality
+- **Redis**: For testing Redis commands
+- **PostgreSQL**: For testing PostgreSQL queries
+- **MySQL**: For testing MySQL queries
+- **Cassandra**: For testing CQL queries
+- **MailHog**: A development SMTP server with web interface for testing SMTP functionality
+
+### Usage
+
+#### Starting All Services
+
+To start all services:
+
+```bash
+docker compose up -d
+```
+
+#### Starting a Specific Service
+
+To start a specific service (and its dependencies):
+
+```bash
+docker compose up -d <service-name>
+```
+
+For example, to start only Kafka and its dependency (Zookeeper):
+
+```bash
+docker compose up -d kafka
+```
+
+#### Stopping Services
+
+To stop all services:
+
+```bash
+docker compose down
+```
+
+### Service Connection Details
+
+Refer to each command section above for examples of how to connect to each service.
+
+#### Creating Test Topics in Kafka
+
+To create a test topic in Kafka, you can use the following command:
+
+```bash
+docker exec -it kafka kafka-topics --create --topic test-topic --bootstrap-server localhost:9092 --partitions 1 --replication-factor 1
+```
+
+To list topics:
+
+```bash
+docker exec -it kafka kafka-topics --list --bootstrap-server localhost:9092
+```
