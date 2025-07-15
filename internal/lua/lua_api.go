@@ -15,6 +15,7 @@ import (
 	"github.com/freshworks/load-generator/internal/cql"
 	"github.com/freshworks/load-generator/internal/grpc"
 	"github.com/freshworks/load-generator/internal/http"
+	"github.com/freshworks/load-generator/internal/mongo"
 	"github.com/freshworks/load-generator/internal/mysql"
 	"github.com/freshworks/load-generator/internal/psql"
 	"github.com/freshworks/load-generator/internal/redis"
@@ -188,6 +189,21 @@ func (lg *LG) preloadModules(L *lua.LState) {
 		mod.RawSetString("New", luar.New(L,
 			func(o *smtp.GeneratorOptions) (*smtp.Generator, error) {
 				g := smtp.NewGenerator(lg.Id, *o, lg.ctx, lg.RequestRate, lg.stats)
+				return g, g.Init()
+			}))
+		L.Push(mod)
+		return 1
+	})
+
+	L.PreloadModule("mongo", func(L *lua.LState) int {
+		mod := L.NewTable()
+		mod.RawSetString("Options", luar.New(L,
+			func() *mongo.GeneratorOptions {
+				return mongo.NewOptions()
+			}))
+		mod.RawSetString("New", luar.New(L,
+			func(o *mongo.GeneratorOptions) (*mongo.Generator, error) {
+				g := mongo.NewGenerator(lg.Id, *o, lg.ctx, lg.RequestRate, lg.stats)
 				return g, g.Init()
 			}))
 		L.Push(mod)
