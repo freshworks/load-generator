@@ -306,6 +306,10 @@ lg mongo --database mydb --collection users --operation delete --filter '{"statu
 
 # Aggregate operation
 lg mongo --database mydb --collection users --operation aggregate --filter '[{"$match":{"age":{"$gte":18}}},{"$group":{"_id":"$status","count":{"$sum":1}}}]' --requestrate 1 --duration 30s mongodb://localhost:27017
+
+# Lua script execution
+lg script --duration 12s --requestrate 3 --warmup 3s ./scripts/mongo_comprehensive.lua
+lg script --duration 12s --requestrate 3 --warmup 3s ./scripts/mongo_simple.lua
 ```
 
 #### Authentication Support
