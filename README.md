@@ -370,7 +370,7 @@ find:
   ```
 </details>
 
-See see [here](scripts/mongo.lua) how to do this via Lua script.
+See here [here](scripts/mongo.lua) how to do this via Lua script.
 
 ### Redis
 Generate Redis load:
