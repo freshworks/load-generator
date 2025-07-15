@@ -74,6 +74,7 @@ const (
 	PGTrace     TraceType = "psql"
 	CqlTrace    TraceType = "cql"
 	SmtpTrace   TraceType = "smtp"
+	MongoTrace  TraceType = "mongo"
 	CustomTrace TraceType = "custom"
 	RawTrace    TraceType = "raw"
 )
@@ -479,6 +480,10 @@ func (mm MetricsMap) print() string {
 			case SmtpTrace:
 				name = "SMTP Metrics"
 				subKeyDisplayName = "Key"
+
+			case MongoTrace:
+				name = "MongoDB Metrics"
+				subKeyDisplayName = "Operation"
 
 			case RawTrace:
 				name = "Raw Metrics"

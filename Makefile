@@ -62,6 +62,15 @@ test-http: $(BINARY)
 	./$(BINARY) http --url "https://httpbin.org/get" --method GET \
 		--requestrate 10 --duration 5s
 
+.PHONY: test-mongo
+test-mongo: $(BINARY)
+	docker compose up -d mongodb
+	sleep 10
+	./$(BINARY) mongo --database testdb --collection users --operation find \
+		--filter '{"status":"active"}' --requestrate 10 --duration 5s \
+		"mongodb://admin:admin@localhost:27017"
+	docker compose down
+
 .PHONY: test-all
-test-all: test-kafka-scram test-kafka test-redis test-http
+test-all: test-kafka-scram test-kafka test-redis test-http test-mongo
 	docker compose down

@@ -8,6 +8,7 @@ Following endpoints are supported:
   * MySQL
   * PostgreSQL
   * Cassandra
+  * MongoDB
   * SMTP
   * Kafka
 
@@ -286,6 +287,86 @@ Also see [here](scripts/ucr/ucr.lua) on how we are doing full
 application load test on database (by making CQL calls for given business
 logic) and report low level CQL metrics and as well as high level meaningful
 metrics.
+
+### MongoDB
+Generate MongoDB load:
+
+```
+# Basic find operation
+lg mongo --database mydb --collection users --operation find --filter '{"status":"active"}' --requestrate 10 --duration 30s mongodb://localhost:27017
+
+# Insert operation
+lg mongo --database mydb --collection users --operation insert --document '{"name":"John","age":30,"status":"active"}' --requestrate 5 --duration 30s mongodb://localhost:27017
+
+# Update operation
+lg mongo --database mydb --collection users --operation update --filter '{"name":"John"}' --update '{"$set":{"age":31,"updated_at":"2024-01-01"}}' --requestrate 2 --duration 30s mongodb://localhost:27017
+
+# Delete operation
+lg mongo --database mydb --collection users --operation delete --filter '{"status":"inactive"}' --requestrate 1 --duration 30s mongodb://localhost:27017
+
+# Aggregate operation
+lg mongo --database mydb --collection users --operation aggregate --filter '[{"$match":{"age":{"$gte":18}}},{"$group":{"_id":"$status","count":{"$sum":1}}}]' --requestrate 1 --duration 30s mongodb://localhost:27017
+```
+
+#### Authentication Support
+
+MongoDB load generator supports various authentication methods:
+
+```bash
+# Username/password authentication
+lg mongo --database mydb --collection users --operation find --username user --password pass --auth-db admin mongodb://localhost:27017
+
+# Connection string with authentication
+lg mongo --database mydb --collection users --operation find mongodb://user:pass@localhost:27017/mydb?authSource=admin
+
+# TLS connection
+lg mongo --database mydb --collection users --operation find --tls mongodb://localhost:27017
+```
+
+#### Supported Operations
+
+| Operation | Description | Required Parameters |
+|-----------|-------------|-------------------|
+| `find` | Query documents | `--filter` (JSON query) |
+| `insert` | Insert documents | `--document` (JSON document) |
+| `update` | Update documents | `--filter` (JSON query), `--update` (JSON update) |
+| `delete` | Delete documents | `--filter` (JSON query) |
+| `aggregate` | Aggregation pipeline | `--filter` (JSON pipeline array) |
+
+<details>
+  <summary>Output:</summary>
+
+  ```
+INFO[0000] Starting ...
+INFO[0005] Warmup done (5s seconds)
+
+MongoDB Metrics:
+
+mydb.users:
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+|    OPERATION     | AVG  | STDDEV | MIN  | MAX  | P50  | P95  | P99  | P99.99 | TOTAL | AVGRPS | ERRORS |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+| find             | 2.45 |   0.85 | 1.20 | 4.50 | 2.30 | 4.20 | 4.50 |   4.50 |   150 |  10.00 |      0 |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+
+Response time histogram (ms):
+
+find:
+     1.200 [        12] |■■■■■■■■■■■
+     1.530 [        25] |■■■■■■■■■■■■■■■■■■■■■■■
+     1.860 [        38] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     2.190 [        42] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     2.520 [        18] |■■■■■■■■■■■■■■■■
+     2.850 [         8] |■■■■■■■
+     3.180 [         4] |■■■
+     3.510 [         2] |■
+     3.840 [         0] |
+     4.170 [         0] |
+     4.500 [         1] |■
+  ```
+</details>
+
+See see [here](scripts/mongo.lua) how to do this via Lua script.
 
 ### Redis
 Generate Redis load:
@@ -590,6 +671,7 @@ The docker-compose.yml file includes the following services:
 - **PostgreSQL**: For testing PostgreSQL queries
 - **MySQL**: For testing MySQL queries
 - **Cassandra**: For testing CQL queries
+- **MongoDB**: For testing MongoDB operations
 - **MailHog**: A development SMTP server with web interface for testing SMTP functionality
 
 ### Usage
