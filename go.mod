@@ -8,8 +8,8 @@ require (
 	github.com/bdwilliams/go-jsonify v0.0.0-20141020182238-48749139e742
 	github.com/brentp/go-chartjs v0.0.0-20170901194241-a37b166b7875
 	github.com/datastax/gocql-astra v0.0.0-20220825200745-7aa1e2624df1
-	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
-	github.com/emersion/go-smtp v0.20.2
+	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
+	github.com/emersion/go-smtp v0.24.0
 	github.com/fullstorydev/grpcurl v1.9.3
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-sql-driver/mysql v1.9.3

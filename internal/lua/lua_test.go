@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/freshworks/load-generator/internal/cql"
 	"github.com/freshworks/load-generator/internal/psql"
@@ -675,7 +676,7 @@ func TestScriptGenerator(t *testing.T) {
 			      o = smtp.Options()
 			      o.Target = "{{.Target}}"
 			      o.Plaintext = true
-                              o.Username = "{{.Username}}"
+                  o.Username = "{{.Username}}"
 			      o.Password = "{{.Password}}"
 
 			      smtp_client, err = smtp.New(o)
@@ -1214,13 +1215,24 @@ func (bkd *Backend) NewSession(_ *smtp.Conn) (smtp.Session, error) {
 type Session struct {
 	username string
 	password string
+	auth     bool
 }
 
-func (s *Session) AuthPlain(username, password string) error {
-	if username != s.username || password != s.password {
-		return errors.New("Invalid username or password")
-	}
-	return nil
+// AuthMechanisms returns a slice of available auth mechanisms; only PLAIN is
+// supported in this example.
+func (s *Session) AuthMechanisms() []string {
+	return []string{sasl.Plain}
+}
+
+// Auth is the handler for supported authenticators.
+func (s *Session) Auth(mech string) (sasl.Server, error) {
+	return sasl.NewPlainServer(func(identity, username, password string) error {
+		if username != s.username || password != s.password {
+			return errors.New("invalid username or password")
+		}
+		s.auth = true
+		return nil
+	}), nil
 }
 
 func (s *Session) Mail(from string, opts *smtp.MailOptions) error {
