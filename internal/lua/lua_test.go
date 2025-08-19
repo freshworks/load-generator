@@ -1218,6 +1218,12 @@ type Session struct {
 	auth     bool
 }
 
+// AuthMechanisms returns a slice of available auth mechanisms; only PLAIN is
+// supported in this example.
+func (s *Session) AuthMechanisms() []string {
+	return []string{sasl.Plain}
+}
+
 // Auth is the handler for supported authenticators.
 func (s *Session) Auth(mech string) (sasl.Server, error) {
 	return sasl.NewPlainServer(func(identity, username, password string) error {
