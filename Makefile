@@ -53,14 +53,14 @@ test-kafka: $(BINARY)
 test-redis: $(BINARY)
 	docker compose up -d redis
 	sleep 5
-	./$(BINARY) redis --address "localhost:6379" --key "test-key" --value "Test value" \
-		--requestrate 10 --duration 5s
+	./$(BINARY) redis --cmd "SET" --arg "test-key" --arg "Test value" \
+		--requestrate 10 --duration 5s localhost:6379
 	docker compose down
 
 .PHONY: test-http
 test-http: $(BINARY)
-	./$(BINARY) http --url "https://httpbin.org/get" --method GET \
-		--requestrate 10 --duration 5s
+	./$(BINARY) http --requestrate 10 --duration 5s \
+		"https://httpbin.org/get"
 
 .PHONY: test-mongo
 test-mongo: $(BINARY)

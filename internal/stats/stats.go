@@ -501,8 +501,12 @@ func (mm MetricsMap) print() string {
 			}
 			hdrs = append(hdrs, colsNamesToDisplay...)
 
-			table := tablewriter.NewWriter(&out)
-			table.SetHeader(hdrs)
+			table := tablewriter.NewTable(&out)
+			hdrInterfaces := make([]any, len(hdrs))
+			for i, h := range hdrs {
+				hdrInterfaces[i] = h
+			}
+			table.Header(hdrInterfaces...)
 
 			for _, u := range resps {
 				records := []string{
