@@ -18,6 +18,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/freshworks/load-generator/internal/cql"
 	"github.com/freshworks/load-generator/internal/psql"
