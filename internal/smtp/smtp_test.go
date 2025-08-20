@@ -90,7 +90,7 @@ func TestSMTP(t *testing.T) {
 		o.Plaintext = false
 		o.Username = username
 		o.Password = password
-		o.Target = fmt.Sprintf(svr.Addr)
+		o.Target = svr.Addr
 		o.From = "foo@example.com"
 		o.To = "bar@example.com"
 		o.Subject = "hello"
@@ -130,7 +130,7 @@ func TestSMTP(t *testing.T) {
 		o.Plaintext = false
 		o.Username = username
 		o.Password = password
-		o.Target = fmt.Sprintf(svr.Addr)
+		o.Target = svr.Addr
 		o.From = "foo@example.com"
 		o.To = "bar@example.com"
 		o.Subject = "hello"
@@ -169,7 +169,7 @@ func TestSMTP(t *testing.T) {
 		o.Plaintext = true
 		o.Username = username
 		o.Password = "barrr"
-		o.Target = fmt.Sprintf(svr.Addr)
+		o.Target = svr.Addr
 		o.From = "foo@example.com"
 		o.To = "bar@example.com"
 		o.Subject = "hello"
