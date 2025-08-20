@@ -180,22 +180,31 @@ func (g *Generator) recordMetric(d time.Duration, err error) {
 }
 
 func (g *Generator) getSmtpClient() (*smtp.Client, error) {
-	c, err := smtp.Dial(g.o.Target)
-	if err != nil {
-		return nil, err
+	var c *smtp.Client
+	var err error
+	if g.o.Plaintext {
+		c, err = smtp.Dial(g.o.Target)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// If plaintext is false, use starttls options
+		c, err = smtp.DialStartTLS(g.o.Target, g.tlsConfig)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if g.o.Username != "" {
-		auth := sasl.NewPlainClient("", g.o.Username, g.o.Password)
-		if err := c.Auth(auth); err != nil {
-			return nil, err
+		if ok, _ := c.Extension("AUTH"); ok {
+			auth := sasl.NewPlainClient("", g.o.Username, g.o.Password)
+			if err = c.Auth(auth); err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, errors.New("SMTP authentication failed: server does not support AUTH extension")
 		}
-	}
 
-	if !g.o.Plaintext {
-		if err := c.StartTLS(g.tlsConfig); err != nil {
-			return nil, err
-		}
 	}
 
 	return c, nil
