@@ -202,7 +202,7 @@ func (g *Generator) getSmtpClient() (*smtp.Client, error) {
 				return nil, err
 			}
 		} else {
-			return nil, errors.New("server does not support AUTH extension")
+			return nil, errors.New("SMTP authentication failed: server does not support AUTH extension")
 		}
 
 	}
