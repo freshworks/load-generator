@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/freshworks/load-generator/internal/clickhouse"
 	"github.com/freshworks/load-generator/internal/cql"
 	"github.com/freshworks/load-generator/internal/grpc"
 	"github.com/freshworks/load-generator/internal/http"
@@ -204,6 +205,21 @@ func (lg *LG) preloadModules(L *lua.LState) {
 		mod.RawSetString("New", luar.New(L,
 			func(o *mongo.GeneratorOptions) (*mongo.Generator, error) {
 				g := mongo.NewGenerator(lg.Id, *o, lg.ctx, lg.RequestRate, lg.stats)
+				return g, g.Init()
+			}))
+		L.Push(mod)
+		return 1
+	})
+
+	L.PreloadModule("clickhouse", func(L *lua.LState) int {
+		mod := L.NewTable()
+		mod.RawSetString("Options", luar.New(L,
+			func() *clickhouse.GeneratorOptions {
+				return clickhouse.NewOptions()
+			}))
+		mod.RawSetString("New", luar.New(L,
+			func(o *clickhouse.GeneratorOptions) (*clickhouse.Generator, error) {
+				g := clickhouse.NewGenerator(lg.Id, *o, lg.ctx, lg.RequestRate, lg.stats)
 				return g, g.Init()
 			}))
 		L.Push(mod)
