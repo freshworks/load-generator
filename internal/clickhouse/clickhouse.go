@@ -123,7 +123,7 @@ func (h *Hooks) Before(ctx context.Context, query string, args ...interface{}) (
 // After hook will get the timestamp registered on the Before hook and print the elapsed time
 func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (context.Context, error) {
 	var traceInfo stats.TraceInfo
-	traceInfo.Type = stats.SqlTrace
+	traceInfo.Type = stats.ClickHouseTrace
 	traceInfo.Key = "" // TODO: Set it host
 	traceInfo.Subkey = query
 	traceInfo.Total = time.Since(ctx.Value(begin).(time.Time))
@@ -134,7 +134,7 @@ func (h *Hooks) After(ctx context.Context, query string, args ...interface{}) (c
 
 func (h *Hooks) OnError(ctx context.Context, err error, query string, args ...interface{}) error {
 	var traceInfo stats.TraceInfo
-	traceInfo.Type = stats.SqlTrace
+	traceInfo.Type = stats.ClickHouseTrace
 	traceInfo.Key = "" // TODO: Set it host
 	traceInfo.Subkey = query
 

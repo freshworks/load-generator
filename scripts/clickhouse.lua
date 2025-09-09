@@ -19,10 +19,10 @@ function init()
 end
 
 function tick()
-   return exec_sql_queries(queries)
+   return exec_sql_queries()
 end
 
-function exec_sql_queries(queries)
+function exec_sql_queries()
    local metric_name = "my_clickhouse_req_with_100_queries"
    LG:BeginCustomMetrics(metric_name)
    for num = 1,100 do
