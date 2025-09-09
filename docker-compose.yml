@@ -107,3 +107,21 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
       MONGO_INITDB_DATABASE: test
+
+  # ClickHouse for ClickHouse command testing
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8
+    container_name: clickhouse
+    ports:
+      - "9000:9000" # Native protocol
+      - "8123:8123" # HTTP protocol
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD:
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+
+volumes:
+  clickhouse_data:

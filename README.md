@@ -9,6 +9,7 @@ Following endpoints are supported:
   * PostgreSQL
   * Cassandra
   * MongoDB
+  * ClickHouse
   * SMTP
   * Kafka
 
@@ -372,6 +373,106 @@ find:
 
 See here [here](scripts/mongo.lua) how to do this via Lua script.
 
+### ClickHouse
+Generate ClickHouse load:
+
+```
+# Basic query
+lg clickhouse --requestrate 1 --duration 10s 'clickhouse://127.0.0.1:9000/default'
+
+# With authentication
+lg clickhouse --requestrate 10 --duration 30s --query 'SELECT count() FROM table' 'clickhouse://user:pass@host:9000/db'
+
+# With compression and custom settings
+lg clickhouse --requestrate 5 --duration 60s --query 'SELECT * FROM events LIMIT 1000' 'clickhouse://user:pass@host:9000/db?compress=lz4&dial_timeout=10s'
+```
+
+#### Connection String Format
+
+ClickHouse uses standard URL format for connection strings:
+
+```
+clickhouse://[username:password@]host:port/database[?param1=value1&param2=value2]
+```
+
+#### Supported Parameters
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `compress` | Compression algorithm (lz4, zstd, none) | none |
+| `dial_timeout` | Connection timeout | 30s |
+| `read_timeout` | Read timeout | 30s |
+| `write_timeout` | Write timeout | 30s |
+| `protocol` | Protocol (native, http) | native |
+| `secure` | Enable TLS | false |
+| `skip_verify` | Skip TLS certificate verification | false |
+
+#### Authentication
+
+ClickHouse supports username/password authentication:
+
+```bash
+lg clickhouse --requestrate 10 --query 'SELECT 1' 'clickhouse://username:password@localhost:9000/default'
+```
+
+#### Protocol Support
+
+ClickHouse supports both native TCP (port 9000) and HTTP (port 8123) protocols:
+
+```bash
+# Native protocol (default, recommended for performance)
+lg clickhouse --requestrate 100 'clickhouse://127.0.0.1:9000/default'
+
+# HTTP protocol
+lg clickhouse --requestrate 50 'clickhouse://127.0.0.1:8123/default?protocol=http'
+```
+
+#### Compression
+
+Enable compression for better performance over network:
+
+```bash
+# LZ4 compression (recommended)
+lg clickhouse --query 'SELECT * FROM large_table' 'clickhouse://127.0.0.1:9000/db?compress=lz4'
+
+# ZSTD compression (better compression ratio)
+lg clickhouse --query 'SELECT * FROM large_table' 'clickhouse://127.0.0.1:9000/db?compress=zstd'
+```
+
+#### Lua Script Support
+
+See [here](scripts/clickhouse.lua) how to use ClickHouse in Lua scripts.
+
+<details>
+  <summary>Output:</summary>
+
+  ```
+INFO[0000] Starting ...
+INFO[0005] Warmup done (5s seconds)
+
+ClickHouse Metrics:
+
+127.0.0.1:9000:
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+|      QUERY       | AVG  | STDDEV | MIN  | MAX  | P50  | P95  | P99  | P99.99 | TOTAL | AVGRPS | ERRORS |
++------------------+------+--------+------+------+------+------+------+--------+-------+--------+--------+
+| 16219655761820A2 | 0.85 |   0.12 | 0.45 | 1.25 | 0.82 | 1.15 | 1.25 |   1.25 |   150 |  10.00 |      0 |
++------------------+------+--------+------+------+------+------+--------+-------+--------+--------+
+
+Response time histogram (ms):
+
+16219655761820A2:
+     0.450 [        12] |■■■■■■■■■■■
+     0.575 [        25] |■■■■■■■■■■■■■■■■■■■■■■■
+     0.700 [        38] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     0.825 [        42] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+     0.950 [        18] |■■■■■■■■■■■■■■■■
+     1.075 [         8] |■■■■■■■
+     1.200 [         4] |■■■
+     1.250 [         3] |■■
+  ```
+</details>
+
 ### Redis
 Generate Redis load:
 
@@ -676,6 +777,7 @@ The docker-compose.yml file includes the following services:
 - **MySQL**: For testing MySQL queries
 - **Cassandra**: For testing CQL queries
 - **MongoDB**: For testing MongoDB operations
+- **ClickHouse**: For testing ClickHouse queries (both native TCP on port 9000 and HTTP on port 8123)
 - **MailHog**: A development SMTP server with web interface for testing SMTP functionality
 
 ### Usage
