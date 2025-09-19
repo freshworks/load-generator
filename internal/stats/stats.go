@@ -67,16 +67,17 @@ const (
 type TraceType string
 
 const (
-	HttpTrace   TraceType = "http"
-	GrpcTrace   TraceType = "grpc"
-	RedisTrace  TraceType = "redis"
-	SqlTrace    TraceType = "sql"
-	PGTrace     TraceType = "psql"
-	CqlTrace    TraceType = "cql"
-	SmtpTrace   TraceType = "smtp"
-	MongoTrace  TraceType = "mongo"
-	CustomTrace TraceType = "custom"
-	RawTrace    TraceType = "raw"
+	HttpTrace       TraceType = "http"
+	GrpcTrace       TraceType = "grpc"
+	RedisTrace      TraceType = "redis"
+	SqlTrace        TraceType = "sql"
+	PGTrace         TraceType = "psql"
+	CqlTrace        TraceType = "cql"
+	ClickHouseTrace TraceType = "clickhouse"
+	SmtpTrace       TraceType = "smtp"
+	MongoTrace      TraceType = "mongo"
+	CustomTrace     TraceType = "custom"
+	RawTrace        TraceType = "raw"
 )
 
 type TraceInfo struct {
@@ -469,6 +470,10 @@ func (mm MetricsMap) print() string {
 				name = "Cassandra Metrics"
 				subKeyDisplayName = "Query"
 
+			case ClickHouseTrace:
+				name = "ClickHouse Metrics"
+				subKeyDisplayName = "Query"
+
 			case RedisTrace:
 				name = "Redis Metrics"
 				subKeyDisplayName = "Command"
@@ -654,7 +659,7 @@ func (s *Stats) resetMetrics() {
 }
 
 func (s *Stats) handleMetric(t *TraceInfo) {
-	if t.Type == SqlTrace || t.Type == CqlTrace || t.Type == PGTrace {
+	if t.Type == SqlTrace || t.Type == CqlTrace || t.Type == PGTrace || t.Type == ClickHouseTrace {
 		q := mysqlquery.Fingerprint(t.Subkey)
 		d := mysqlquery.Id(q)
 		t.Subkey = d
