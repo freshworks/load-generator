@@ -2,6 +2,7 @@ module github.com/freshworks/load-generator
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.40.1
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/Davmuz/gqt v0.0.0-20161229104334-7589d282c7c3
 	github.com/HdrHistogram/hdrhistogram-go v1.1.2
 	github.com/alicebob/miniredis v2.5.0+incompatible
@@ -33,7 +34,7 @@ require (
 	golang.org/x/net v0.42.0
 	golang.org/x/time v0.12.0
 	google.golang.org/grpc v1.74.2
-	google.golang.org/protobuf v1.36.6
+	google.golang.org/protobuf v1.36.9
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	layeh.com/gopher-luar v1.0.11
 	moul.io/http2curl v1.0.0
@@ -44,7 +45,6 @@ require (
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/ClickHouse/ch-go v0.67.0 // indirect
-	github.com/DATA-DOG/go-sqlmock v1.5.2 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
