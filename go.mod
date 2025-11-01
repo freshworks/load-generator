@@ -25,7 +25,7 @@ require (
 	github.com/qustavo/sqlhooks/v2 v2.1.0
 	github.com/segmentio/kafka-go v0.4.49
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.9.1
+	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/pretty v1.2.1
 	github.com/vadv/gopher-lua-libs v0.5.0
@@ -119,7 +119,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/shopspring/decimal v1.4.0 // indirect
 	github.com/smartystreets/goconvey v1.8.1 // indirect
-	github.com/spf13/pflag v1.0.6 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.5.0 // indirect
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
