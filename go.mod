@@ -28,7 +28,7 @@ require (
 	github.com/spf13/cobra v1.10.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/pretty v1.2.1
-	github.com/vadv/gopher-lua-libs v0.5.0
+	github.com/vadv/gopher-lua-libs v0.7.0
 	github.com/yuin/gopher-lua v1.1.0
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/net v0.46.0
@@ -41,6 +41,7 @@ require (
 )
 
 require (
+	al.essio.dev/pkg/shellescape v1.5.1 // indirect
 	dario.cat/mergo v1.0.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
@@ -48,7 +49,6 @@ require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/VividCortex/ewma v1.1.1 // indirect
-	github.com/alessio/shellescape v1.4.1 // indirect
 	github.com/alicebob/gopher-json v0.0.0-20200520072559-a9ecdc9d1d3a // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
