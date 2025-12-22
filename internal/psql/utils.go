@@ -11,6 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/ory/dockertest/v3"
+	dc "github.com/ory/dockertest/v3/docker"
 	mysqlquery "github.com/percona/go-mysql/query"
 )
 
@@ -100,7 +101,9 @@ func runPostgresDB(version string, certData *Cert) (string /*DB Connection Strin
 		//
 		// fmt.Printf("\n\ncontainer logs: %v\n\n", string(bytes))
 
-		pool.Purge(resource)
+		if resource != nil {
+			pool.Purge(resource)
+		}
 	}
 	// if function panics anywhere in further steps,
 	// cleanup resources.
@@ -155,14 +158,20 @@ func runDockerContainer(repo string, tag string, mountOptions []string, envOptio
 	}
 
 	o := &dockertest.RunOptions{
-		Repository: repo,
-		Tag:        tag,
-		Mounts:     mountOptions,
-		Env:        envOptions,
-		Cmd:        cmdOptions,
-		Entrypoint: entrypointOverrides,
+		Repository:   repo,
+		Tag:          tag,
+		Mounts:       mountOptions,
+		Env:          envOptions,
+		Cmd:          cmdOptions,
+		Entrypoint:   entrypointOverrides,
+		ExposedPorts: []string{postgresPort + "/tcp"},
+		PortBindings: map[dc.Port][]dc.PortBinding{
+			dc.Port(postgresPort + "/tcp"): {{HostIP: "", HostPort: ""}},
+		},
 	}
-	resource, err := pool.RunWithOptions(o)
+	resource, err := pool.RunWithOptions(o, func(hc *dc.HostConfig) {
+		hc.PublishAllPorts = false
+	})
 
 	return resource, pool, err
 }
