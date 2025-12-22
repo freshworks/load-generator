@@ -34,7 +34,7 @@ require (
 	golang.org/x/net v0.47.0
 	golang.org/x/time v0.14.0
 	google.golang.org/grpc v1.74.2
-	google.golang.org/protobuf v1.36.9
+	google.golang.org/protobuf v1.36.11
 	layeh.com/gopher-json v0.0.0-20201124131017-552bb3c4c3bf
 	layeh.com/gopher-luar v1.0.11
 	moul.io/http2curl v1.0.0
