@@ -12,6 +12,7 @@ import (
 
 	"github.com/HdrHistogram/hdrhistogram-go"
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
 	mysqlquery "github.com/percona/go-mysql/query"
 	"github.com/sirupsen/logrus"
 )
@@ -47,6 +48,7 @@ type Stats struct {
 	statsWg       sync.WaitGroup
 	statsCmd      chan statsCmd
 	server        bool
+	outputFormat  OutputFormat
 }
 
 type statsCmd struct {
@@ -78,6 +80,23 @@ const (
 	MongoTrace      TraceType = "mongo"
 	CustomTrace     TraceType = "custom"
 	RawTrace        TraceType = "raw"
+)
+
+// sectionOrder is the canonical, stable order in which protocol sections are
+// printed. The metrics map is keyed by TraceType, and Go randomizes map
+// iteration order, so without this the section order varies run-to-run. A fixed
+// order keeps regenerated reports (especially Markdown) diff-friendly.
+var sectionOrder = []TraceType{
+	HttpTrace, GrpcTrace, SqlTrace, PGTrace, CqlTrace,
+	ClickHouseTrace, RedisTrace, MongoTrace, SmtpTrace, CustomTrace, RawTrace,
+}
+
+// OutputFormat selects how Report() renders the metrics report.
+type OutputFormat int
+
+const (
+	FormatTable    OutputFormat = iota // current boxed ASCII (default)
+	FormatMarkdown                     // GitHub-flavored Markdown
 )
 
 type TraceInfo struct {
@@ -244,6 +263,11 @@ func (s *Stats) Import(report *Report) {
 	<-done
 }
 
+// SetOutputFormat selects how Report() renders. Call before Start()/Report().
+func (s *Stats) SetOutputFormat(f OutputFormat) {
+	s.outputFormat = f
+}
+
 func (mm MetricsMap) update(t *TraceInfo) {
 	m := mm.getMetrics(t.Type, Key(t.Key), Subkey(t.Subkey))
 
@@ -405,10 +429,14 @@ func (mm MetricsMap) importReport(report *Report) {
 	}
 }
 
-func (mm MetricsMap) print() string {
+func (mm MetricsMap) print(format OutputFormat) string {
 	var out strings.Builder
 
-	for typ, v1 := range mm {
+	for _, typ := range sectionOrder {
+		v1, ok := mm[typ]
+		if !ok {
+			continue
+		}
 		// Sort by host name
 		type kv struct {
 			key  Key
@@ -496,8 +524,13 @@ func (mm MetricsMap) print() string {
 				actualScale = 1
 			}
 
-			fmt.Fprintf(&out, "\n%v:\n", name)
-			fmt.Fprintf(&out, "\n%s:\n", v2.key)
+			if format == FormatMarkdown {
+				fmt.Fprintf(&out, "\n### %v\n", name)
+				fmt.Fprintf(&out, "\n#### %s\n", v2.key)
+			} else {
+				fmt.Fprintf(&out, "\n%v:\n", name)
+				fmt.Fprintf(&out, "\n%s:\n", v2.key)
+			}
 
 			hdrs := []string{subKeyDisplayName, "Avg", "StdDev", "Min",
 				"Max", "p50", "p95", "p99", "p99.99", "Total"}
@@ -507,6 +540,10 @@ func (mm MetricsMap) print() string {
 			hdrs = append(hdrs, colsNamesToDisplay...)
 
 			table := tablewriter.NewTable(&out)
+			if format == FormatMarkdown {
+				table = tablewriter.NewTable(&out,
+					tablewriter.WithRenderer(renderer.NewMarkdown()))
+			}
 			hdrInterfaces := make([]any, len(hdrs))
 			for i, h := range hdrs {
 				hdrInterfaces[i] = h
@@ -558,7 +595,7 @@ func (mm MetricsMap) print() string {
 				desc = "Response time histogram (ms):"
 			}
 			for _, u := range resps {
-				fmt.Fprintf(&out, "%s", printHistogram(string(u.subkey), desc, u.resp.latency, actualScale))
+				fmt.Fprintf(&out, "%s", printHistogram(string(u.subkey), desc, u.resp.latency, actualScale, format == FormatMarkdown))
 			}
 		}
 	}
@@ -749,11 +786,18 @@ func (s *Stats) print() string {
 	if s.importCount > 0 {
 		fmt.Fprintf(&out, "\nMerics collected from %v remote workers\n", s.importCount)
 	}
-	fmt.Fprintf(&out, "%v", s.metrics.print())
+	fmt.Fprintf(&out, "%v", s.metrics.print(s.outputFormat))
 	if len(s.digestToQuery) > 0 {
-		fmt.Fprintf(&out, "Digest to query mapping:\n")
-		for k, v := range s.digestToQuery {
-			fmt.Fprintf(&out, "  %s : %s\n", k, v)
+		if s.outputFormat == FormatMarkdown {
+			fmt.Fprintf(&out, "\n### Query fingerprints\n\n| Digest | Query |\n|--------|-------|\n")
+			for k, v := range s.digestToQuery {
+				fmt.Fprintf(&out, "| %s | %s |\n", k, v)
+			}
+		} else {
+			fmt.Fprintf(&out, "Digest to query mapping:\n")
+			for k, v := range s.digestToQuery {
+				fmt.Fprintf(&out, "  %s : %s\n", k, v)
+			}
 		}
 	}
 	fmt.Fprintln(&out, "")
@@ -761,7 +805,7 @@ func (s *Stats) print() string {
 	return out.String()
 }
 
-func printHistogram(title string, description string, hdrhist *hdrhistogram.Histogram, scale float64) string {
+func printHistogram(title string, description string, hdrhist *hdrhistogram.Histogram, scale float64, markdown bool) string {
 	var o strings.Builder
 	buckets := getHistogramBuckets(hdrhist, scale)
 	if len(buckets) == 0 {
@@ -772,8 +816,13 @@ func printHistogram(title string, description string, hdrhist *hdrhistogram.Hist
 	if description != "" {
 		fmt.Fprintf(&o, "\n%s\n", description)
 	}
-	fmt.Fprintf(&o, "\n%v:\n", title)
-	fmt.Fprint(&o, getResponseHistogram(buckets))
+	if markdown {
+		// ASCII bars are not valid Markdown; keep them readable inside a fence.
+		fmt.Fprintf(&o, "\n```\n%v:\n%s```\n", title, getResponseHistogram(buckets))
+	} else {
+		fmt.Fprintf(&o, "\n%v:\n", title)
+		fmt.Fprint(&o, getResponseHistogram(buckets))
+	}
 
 	return o.String()
 }
