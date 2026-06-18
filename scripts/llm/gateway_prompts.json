@@ -1,0 +1,28 @@
+[
+  {
+    "name": "short-summary",
+    "messages": [
+      {
+        "role": "system",
+        "content": "You answer clearly and briefly."
+      },
+      {
+        "role": "user",
+        "content": "Summarize why API gateways are useful in two sentences."
+      }
+    ]
+  },
+  {
+    "name": "ops-explanation",
+    "messages": [
+      {
+        "role": "user",
+        "content": "Explain retry backoff to a new engineer in three bullet points."
+      }
+    ]
+  },
+  {
+    "name": "simple-prompt-field",
+    "prompt": "Write a one-line haiku about reliable systems."
+  }
+]
