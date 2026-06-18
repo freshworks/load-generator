@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -226,4 +227,133 @@ func TestBarsToBuckets(t *testing.T) {
 		count += b.Count
 	}
 	require.Equal(int64(25), count)
+}
+
+func TestMarkdownReport(t *testing.T) {
+	require := require.New(t)
+
+	s := New(uuid.New().String(), 1, 1, 10*time.Second, false)
+	s.SetOutputFormat(FormatMarkdown)
+	s.Start()
+	defer s.Stop()
+
+	s.RecordMetric(&TraceInfo{Type: HttpTrace, Key: "http://example.com", Subkey: "/", Total: 120 * time.Millisecond, Status: 200})
+	s.RecordMetric(&TraceInfo{Type: SqlTrace, Key: "db", Subkey: `SELECT * FROM t WHERE id=1`, Total: 5 * time.Millisecond})
+
+	md := s.Report()
+
+	// Markdown headings for the section/target labels.
+	require.Contains(md, "### HTTP Metrics")
+	require.Contains(md, "#### http://example.com")
+	// No Unicode box-drawing borders — the markdown renderer is in effect.
+	require.NotContains(md, "┌")
+	require.NotContains(md, "│")
+	// A real GFM table: a header row and a |---| separator row, both pipe-delimited.
+	require.Regexp(`(?m)^\|.*\bURL\b.*\bTOTAL\b.*\|$`, md)
+	require.Regexp(`(?m)^\|[\s:|-]*-{3,}[\s:|-]*\|$`, md)
+	// Histogram preserved inside a fenced code block, bars intact.
+	require.Contains(md, "```")
+	require.Contains(md, barChar)
+	// SQL fingerprints rendered as a Markdown table, not the plain "k : v" listing.
+	require.Contains(md, "### Query fingerprints")
+	require.Contains(md, "| Digest | Query |")
+	require.NotContains(md, "Digest to query mapping:")
+}
+
+func TestTableReportUnchanged(t *testing.T) {
+	require := require.New(t)
+
+	s := New(uuid.New().String(), 1, 1, 10*time.Second, false)
+	s.Start() // default format is FormatTable
+	defer s.Stop()
+
+	s.RecordMetric(&TraceInfo{Type: HttpTrace, Key: "http://example.com", Subkey: "/", Total: 120 * time.Millisecond, Status: 200})
+	s.RecordMetric(&TraceInfo{Type: SqlTrace, Key: "db", Subkey: `SELECT 1`, Total: 5 * time.Millisecond})
+
+	out := s.Report()
+
+	// Boxed table (Unicode borders), plain-text labels — no Markdown framing.
+	require.Contains(out, "┌")
+	require.NotContains(out, "### HTTP Metrics")
+	require.NotContains(out, "```")
+	// Histogram heading is emitted inline (not fenced).
+	require.Contains(out, "Response time histogram (ms):")
+	// SQL fingerprints use the plain listing, not a markdown table.
+	require.Contains(out, "Digest to query mapping:")
+	require.NotContains(out, "| Digest | Query |")
+}
+
+// sectionHeadings returns the protocol-section labels in the order they appear
+// in the rendered report.
+func sectionHeadings(report string) []string {
+	names := []string{
+		"HTTP Metrics", "GRPC Metrics", "MySQL Metrics", "PostgresQL Metrics",
+		"Cassandra Metrics", "ClickHouse Metrics", "Redis Metrics",
+		"MongoDB Metrics", "SMTP Metrics", "Custom Metrics", "Raw Metrics",
+	}
+	type pos struct {
+		name string
+		idx  int
+	}
+	var found []pos
+	for _, n := range names {
+		if i := strings.Index(report, n); i >= 0 {
+			found = append(found, pos{n, i})
+		}
+	}
+	sort.Slice(found, func(a, b int) bool { return found[a].idx < found[b].idx })
+	out := make([]string, len(found))
+	for i, p := range found {
+		out[i] = p.name
+	}
+	return out
+}
+
+func TestReportSectionOrderingDeterministic(t *testing.T) {
+	require := require.New(t)
+
+	// Record protocols in an order that does NOT match the canonical one.
+	traces := []*TraceInfo{
+		{Type: RedisTrace, Key: "redis:6379", Subkey: "GET", Total: 1 * time.Millisecond},
+		{Type: MongoTrace, Key: "mongo", Subkey: "find", Total: 2 * time.Millisecond},
+		{Type: SqlTrace, Key: "db", Subkey: "SELECT 1", Total: 3 * time.Millisecond},
+		{Type: HttpTrace, Key: "http://x", Subkey: "/", Total: 4 * time.Millisecond, Status: 200},
+	}
+
+	// Canonical order from sectionOrder: HTTP, then MySQL(Sql), then Redis, then Mongo.
+	want := []string{"HTTP Metrics", "MySQL Metrics", "Redis Metrics", "MongoDB Metrics"}
+
+	for _, format := range []OutputFormat{FormatTable, FormatMarkdown} {
+		s := New(uuid.New().String(), 1, 1, 10*time.Second, false)
+		s.SetOutputFormat(format)
+		s.Start()
+		for _, tr := range traces {
+			s.RecordMetric(tr)
+		}
+
+		// Render several times; ordering must be stable and canonical every time.
+		first := sectionHeadings(s.Report())
+		require.Equalf(want, first, "format=%v", format)
+		for i := 0; i < 5; i++ {
+			require.Equalf(want, sectionHeadings(s.Report()), "format=%v run=%d", format, i)
+		}
+		s.Stop()
+	}
+}
+
+func TestMarkdownRawTraceNoRPSColumns(t *testing.T) {
+	require := require.New(t)
+
+	s := New(uuid.New().String(), 1, 1, 10*time.Second, false)
+	s.SetOutputFormat(FormatMarkdown)
+	s.Start()
+	defer s.Stop()
+
+	s.RecordMetric(&TraceInfo{Type: RawTrace, Key: "rawtarget", Subkey: "combined", Total: 100})
+
+	md := s.Report()
+	require.Contains(md, "### Raw Metrics")
+	// raw omits the AvgRPS/Errors columns and the histogram heading.
+	require.NotContains(md, "AVG RPS")
+	require.NotContains(md, "Response time histogram")
 }

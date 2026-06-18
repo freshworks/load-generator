@@ -26,6 +26,7 @@ var verbose bool
 var profile string
 var exportReport string
 var serverAddr string
+var outputFormat string
 var stat *stats.Stats
 var id string
 
@@ -55,6 +56,16 @@ var rootCmd = &cobra.Command{
 		}
 
 		stat = stats.New(id, requestrate, concurrency, duration, cmd.Name() == "server")
+
+		switch outputFormat {
+		case "table":
+			stat.SetOutputFormat(stats.FormatTable)
+		case "markdown", "md":
+			stat.SetOutputFormat(stats.FormatMarkdown)
+		default:
+			return fmt.Errorf("invalid --output %q (want table|markdown)", outputFormat)
+		}
+
 		stat.Start()
 
 		return nil
@@ -112,6 +123,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&profile, "profile", "", "Generate cpu/memory profile file")
 	rootCmd.PersistentFlags().StringVar(&exportReport, "export", "", "Export results in json format")
 	rootCmd.PersistentFlags().StringVar(&serverAddr, "server", "", "Publish reports to remote lg server")
+	rootCmd.PersistentFlags().StringVar(&outputFormat, "output", "table", "Report output format: table|markdown")
 }
 
 func initConfig() {
