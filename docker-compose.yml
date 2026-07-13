@@ -26,7 +26,7 @@ services:
       
   # Kafka with SCRAM authentication
   kafka-scram:
-    image: bitnami/kafka:3.4
+    image: soldevelo/kafka:3.4
     container_name: kafka-scram
     depends_on:
       - zookeeper
