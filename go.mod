@@ -25,10 +25,10 @@ require (
 	github.com/qustavo/sqlhooks/v2 v2.1.0
 	github.com/segmentio/kafka-go v0.4.49
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/tidwall/pretty v1.2.1
-	github.com/vadv/gopher-lua-libs v0.7.0
+	github.com/vadv/gopher-lua-libs v0.8.0
 	github.com/yuin/gopher-lua v1.1.0
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/net v0.53.0
