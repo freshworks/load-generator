@@ -27,6 +27,7 @@ import (
 	"github.com/gocql/gocql"
 	"github.com/google/uuid"
 	"github.com/ory/dockertest/v3"
+	dc "github.com/ory/dockertest/v3/docker"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -1143,9 +1144,15 @@ func startCassandra() (*dockertest.Pool, *dockertest.Resource, error) {
 			"--permissions-update-interval-in-ms", "100",
 			"--permissions-validity-in-ms", "100",
 		},
+		ExposedPorts: []string{"9042/tcp"},
+		PortBindings: map[dc.Port][]dc.PortBinding{
+			"9042/tcp": {{HostIP: "", HostPort: ""}},
+		},
 	}
 
-	resource, err := pool.RunWithOptions(o)
+	resource, err := pool.RunWithOptions(o, func(hc *dc.HostConfig) {
+		hc.PublishAllPorts = false
+	})
 	if err != nil {
 		return nil, nil, err
 	}
